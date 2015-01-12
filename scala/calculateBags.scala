@@ -1,3 +1,5 @@
+// http://codereview.stackexchange.com/questions/75751/refactor-jaccard-similarity-the-scala-way
+
 def calculateBags(as: List[Int], bs: List[Int]): Double = {
     val (xs, ys) = if (as.size <= bs.size) (as, bs) else (bs, as)
 
