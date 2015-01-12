@@ -1,3 +1,5 @@
+// http://stackoverflow.com/questions/18945141/convert-normal-recursion-to-tail-recursion/
+
 def pascal(column: Int, row: Int):Option[Int] = (column, row) match {
   case (c, r) if (c > r + 1) => None
   case (c, r) if (c == 0) || (c == r) => Some(1)

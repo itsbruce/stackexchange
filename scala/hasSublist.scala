@@ -1,3 +1,5 @@
+// http://codereview.stackexchange.com/questions/77050/list-containsslice
+
 def hasSublist[T](list: List[T], sub: List[T]): Boolean = {
   def matchSub(ls: List[T], ss: List[T]): Option[Boolean] = (ls, ss) match {
     case (_, Nil) => Some(true)
