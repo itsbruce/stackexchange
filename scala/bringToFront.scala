@@ -35,17 +35,40 @@ implicit class SeqLikeOps[A, F[_]](seq: SeqLike[A, F[A]])(implicit ev: F[A] <:< 
  * traversal and fewer no builds (if value a is not present or already
  * at the front
  */
-    def bTF(a: A)(implicit cbf: CanBuildFrom[F[A], A, F[A]]): F[A] = {
-      seq.indexOf(a) match {
-        case i if i > 1 => {
-          val b = cbf()
-          b.sizeHint(seq)
-          b += a
-          b ++= seq take i
-          b ++= seq drop (i + 1)
-          b.result
-        }
-        case _ => seq.repr
+  def bTF(a: A)(implicit cbf: CanBuildFrom[F[A], A, F[A]]): F[A] = {
+    seq.indexOf(a) match {
+      case i if i > 1 => {
+        val b = cbf()
+        b.sizeHint(seq)
+        b += a
+        b ++= seq take i
+        b ++= seq drop (i + 1)
+        b.result
       }
+      case _ => seq.repr
     }
+  }
+
+// Variant on the above which only ever traverses once
+  def bTFi(a: A)(implicit cbf: CanBuildFrom[F[A], A, F[A]]): F[A] = {
+    val iter = seq.iterator
+    val pred = iter.takeWhile(_ != a)
+    val b = cbf()
+    b.sizeHint(seq)
+    b += a
+    b ++= pred
+    if (iter.isEmpty)
+      seq.repr
+    else {
+        b ++= iter
+        b.result
+    }
+  }
+
+// And another, even simpler one
+  def bTFi2(a: A)(implicit cbf: CanBuildFrom[F[A], A, F[A]]): F[A] = {
+    val iter = seq.iterator
+    val pred = iter.takeWhile(_ != a)
+    (Iterator(a) ++ pred ++ iter).to[F]
+  }
 }
