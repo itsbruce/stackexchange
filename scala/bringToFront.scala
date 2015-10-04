@@ -52,6 +52,22 @@ implicit class SeqLikeOps[A, F[_]](seq: SeqLike[A, F[A]])(implicit ev: F[A] <:< 
 // Variant on the above which only ever traverses once
   def bTFi(a: A)(implicit cbf: CanBuildFrom[F[A], A, F[A]]): F[A] = {
     val iter = seq.iterator
+    val pred = iter.takeWhile(_ != a).to[F]
+    if (iter.isEmpty)
+      seq.repr
+    else {
+      val b = cbf()
+      b.sizeHint(seq)
+      b += a
+      b ++= pred
+      b ++= iter
+      b.result
+    }
+  }
+
+// Less "safe" variant
+   def bTFi2(a: A)(implicit cbf: CanBuildFrom[F[A], A, F[A]]): F[A] = {
+    val iter = seq.iterator
     val pred = iter.takeWhile(_ != a)
     val b = cbf()
     b.sizeHint(seq)
@@ -60,13 +76,13 @@ implicit class SeqLikeOps[A, F[_]](seq: SeqLike[A, F[A]])(implicit ev: F[A] <:< 
     if (iter.isEmpty)
       seq.repr
     else {
-        b ++= iter
-        b.result
+      b ++= iter
+      b.result
     }
   }
 
 // And another, even simpler one
-  def bTFi2(a: A)(implicit cbf: CanBuildFrom[F[A], A, F[A]]): F[A] = {
+  def bTFi3(a: A)(implicit cbf: CanBuildFrom[F[A], A, F[A]]): F[A] = {
     val iter = seq.iterator
     val pred = iter.takeWhile(_ != a)
     (Iterator(a) ++ pred ++ iter).to[F]
